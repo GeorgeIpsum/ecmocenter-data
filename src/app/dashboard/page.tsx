@@ -10,6 +10,8 @@ import { CreateCenterDialog } from "@/components/create-center-dialog";
 import { CreateUserDialog } from "@/components/create-user-dialog";
 import { EditCenterDialog } from "@/components/edit-center-dialog";
 import { DeleteCenterDialog } from "@/components/delete-center-dialog";
+import { EditUserDialog } from "@/components/edit-user-dialog";
+import { DeleteUserDialog } from "@/components/delete-user-dialog";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -123,16 +125,32 @@ export default function DashboardPage() {
                       key={user.id}
                       className="rounded-lg border p-4 hover:bg-gray-50"
                     >
-                      <h3 className="font-semibold">{user.name}</h3>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Role: {user.role}
-                      </p>
-                      {user.center && (
-                        <p className="text-xs text-gray-500">
-                          Center: {user.center.name}
-                        </p>
-                      )}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{user.name}</h3>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Role: {user.role}
+                          </p>
+                          {user.center && (
+                            <p className="text-xs text-gray-500">
+                              Center: {user.center.name}
+                            </p>
+                          )}
+                          {user.description && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {user.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <EditUserDialog user={user} />
+                          <DeleteUserDialog
+                            userId={user.id}
+                            userName={user.name}
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                   <div className="mt-4">
