@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CreateCenterDialog } from "@/components/create-center-dialog";
 import { CreateUserDialog } from "@/components/create-user-dialog";
+import { EditCenterDialog } from "@/components/edit-center-dialog";
+import { DeleteCenterDialog } from "@/components/delete-center-dialog";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -73,13 +75,24 @@ export default function DashboardPage() {
                       key={center.id}
                       className="rounded-lg border p-4 hover:bg-gray-50"
                     >
-                      <h3 className="font-semibold">{center.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {center.type} - {center.city}, {center.state}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {center.users.length} staff members
-                      </p>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{center.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            {center.type} - {center.city}, {center.state}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {center.users.length} staff members
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <EditCenterDialog center={center} />
+                          <DeleteCenterDialog
+                            centerId={center.id}
+                            centerName={center.name}
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                   <div className="mt-4">
