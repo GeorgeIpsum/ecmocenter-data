@@ -1,9 +1,9 @@
-import { config } from "dotenv";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { config } from "dotenv";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { CenterType } from "../src/generated/prisma/enums";
-import { readFileSync } from "fs";
-import { join } from "path";
+import type { CenterType } from "../src/generated/prisma/enums";
 
 // Load environment variables from .env.local
 config({ path: join(__dirname, "../.env.local") });
@@ -124,10 +124,10 @@ async function main() {
 
   // Read CSV files
   const centersCSV = parseCSV<CenterCSVRow>(
-    join(__dirname, "../seed-data/ecmo-centers.csv")
+    join(__dirname, "../seed-data/ecmo-centers.csv"),
   );
   const teamMembersCSV = parseCSV<TeamMemberCSVRow>(
-    join(__dirname, "../seed-data/ecmo-team-members.csv")
+    join(__dirname, "../seed-data/ecmo-team-members.csv"),
   );
 
   console.log(`📊 Found ${centersCSV.length} centers in CSV`);
@@ -203,7 +203,9 @@ async function main() {
         let emailExists = true;
         while (emailExists) {
           try {
-            const existingUser = await prisma.user.findUnique({ where: { email } });
+            const existingUser = await prisma.user.findUnique({
+              where: { email },
+            });
             if (!existingUser) {
               emailExists = false;
             } else {
@@ -229,7 +231,10 @@ async function main() {
           nameMap.set(normalizedDirector, directorName);
           console.log(`  ✓ Created director: ${directorName}`);
         } catch (error) {
-          console.error(`  ✗ Failed to create director ${directorName}:`, error);
+          console.error(
+            `  ✗ Failed to create director ${directorName}:`,
+            error,
+          );
         }
       }
     }
@@ -245,7 +250,9 @@ async function main() {
         let emailExists = true;
         while (emailExists) {
           try {
-            const existingUser = await prisma.user.findUnique({ where: { email } });
+            const existingUser = await prisma.user.findUnique({
+              where: { email },
+            });
             if (!existingUser) {
               emailExists = false;
             } else {
@@ -271,7 +278,10 @@ async function main() {
           nameMap.set(normalizedCoordinator, coordinatorName);
           console.log(`  ✓ Created coordinator: ${coordinatorName}`);
         } catch (error) {
-          console.error(`  ✗ Failed to create coordinator ${coordinatorName}:`, error);
+          console.error(
+            `  ✗ Failed to create coordinator ${coordinatorName}:`,
+            error,
+          );
         }
       }
     }
@@ -295,12 +305,16 @@ async function main() {
     const coordinatorId = userMap.get(normalizedCoordinator);
 
     if (!directorId) {
-      console.log(`  ⚠️  Skipping ${centerName} - missing director (${directorName})`);
+      console.log(
+        `  ⚠️  Skipping ${centerName} - missing director (${directorName})`,
+      );
       continue;
     }
 
     if (!coordinatorId) {
-      console.log(`  ⚠️  Skipping ${centerName} - missing coordinator (${coordinatorName})`);
+      console.log(
+        `  ⚠️  Skipping ${centerName} - missing coordinator (${coordinatorName})`,
+      );
       continue;
     }
 
