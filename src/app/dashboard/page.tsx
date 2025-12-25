@@ -1,20 +1,26 @@
 "use client";
 
-import { trpc } from "@/trpc/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useSession, signOut } from "@/lib/auth-client";
+import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
 import { CreateCenterDialog } from "@/components/create-center-dialog";
 import { CreateUserDialog } from "@/components/create-user-dialog";
-import { EditCenterDialog } from "@/components/edit-center-dialog";
 import { DeleteCenterDialog } from "@/components/delete-center-dialog";
-import { EditUserDialog } from "@/components/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/delete-user-dialog";
+import { EditCenterDialog } from "@/components/edit-center-dialog";
+import { EditUserDialog } from "@/components/edit-user-dialog";
 import { Pagination } from "@/components/pagination";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { signOut, useSession } from "@/lib/auth-client";
+import { trpc } from "@/trpc/react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,15 +50,17 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [userSearch]);
 
-  const { data: centers, isLoading: centersLoading } = trpc.ecmoCenter.getAll.useQuery({
-    search: debouncedCenterSearch,
-  });
+  const { data: centers, isLoading: centersLoading } =
+    trpc.ecmoCenter.getAll.useQuery({
+      search: debouncedCenterSearch,
+    });
 
-  const { data: usersData, isLoading: usersLoading } = trpc.user.getAll.useQuery({
-    search: debouncedUserSearch,
-    page: currentPage,
-    limit: 10,
-  });
+  const { data: usersData, isLoading: usersLoading } =
+    trpc.user.getAll.useQuery({
+      search: debouncedUserSearch,
+      page: currentPage,
+      limit: 10,
+    });
 
   const users = usersData?.users;
   const totalPages = usersData?.totalPages || 1;
@@ -64,6 +72,7 @@ export default function DashboardPage() {
   }, [session, isPending, router]);
 
   // Reset to page 1 when search changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <needed>
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedUserSearch]);
@@ -156,7 +165,9 @@ export default function DashboardPage() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500 mb-4">
-                    {debouncedCenterSearch ? "No centers match your search" : "No centers found"}
+                    {debouncedCenterSearch
+                      ? "No centers match your search"
+                      : "No centers found"}
                   </p>
                   {!debouncedCenterSearch && (
                     <CreateCenterDialog buttonText="Create First Center" />
@@ -237,7 +248,9 @@ export default function DashboardPage() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500 mb-4">
-                    {debouncedUserSearch ? "No users match your search" : "No users found"}
+                    {debouncedUserSearch
+                      ? "No users match your search"
+                      : "No users found"}
                   </p>
                   {!debouncedUserSearch && (
                     <CreateUserDialog buttonText="Create First User" />

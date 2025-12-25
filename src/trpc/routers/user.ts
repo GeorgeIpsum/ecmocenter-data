@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../server";
+import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { publicProcedure, router } from "../server";
 
 export const userRouter = router({
   getAll: publicProcedure
@@ -11,14 +12,14 @@ export const userRouter = router({
           page: z.number().min(1).default(1),
           limit: z.number().min(1).max(100).default(10),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ input }) => {
       const page = input?.page || 1;
       const limit = input?.limit || 10;
       const search = input?.search?.toLowerCase();
 
-      const where = search
+      const where: Prisma.UserWhereInput | undefined = search
         ? {
             OR: [
               { name: { contains: search, mode: "insensitive" } },
@@ -74,7 +75,7 @@ export const userRouter = router({
         image: z.string().optional(),
         description: z.string().optional(),
         centerId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       return db.user.create({
@@ -92,7 +93,7 @@ export const userRouter = router({
         image: z.string().optional(),
         description: z.string().optional(),
         centerId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
