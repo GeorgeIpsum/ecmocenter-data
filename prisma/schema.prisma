@@ -41,19 +41,66 @@ model EcmoCenter {
 }
 
 model User {
-  id          String  @id @default(cuid(2))
-  name        String
-  role        String // TODO: change to enum or relation
-  image       String?
-  description String?
+  id            String   @id @default(cuid(2))
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          String // TODO: change to enum or relation
+  description   String?
 
-  email String @unique
-
-  center   EcmoCenter @relation(fields: [centerId], references: [id])
-  centerId String
+  center   EcmoCenter? @relation(fields: [centerId], references: [id])
+  centerId String?
 
   directorRole     EcmoCenter? @relation("DirectorOfCenter")
-  coordinatorRoloe EcmoCenter? @relation("CoordinatorOfCenter")
+  coordinatorRole  EcmoCenter? @relation("CoordinatorOfCenter")
+
+  sessions Session[]
+  accounts Account[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid(2))
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid(2))
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  expiresAt         DateTime?
+  password          String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid(2))
+  identifier String
+  value      String
+  expiresAt  DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
