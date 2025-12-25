@@ -40,7 +40,7 @@ export function EditUserDialog({ user, trigger }: EditUserDialogProps) {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: centers } = trpc.ecmoCenter.getAll.useQuery();
+  const { data: centers } = trpc.ecmoCenter.getAll.useQuery({});
 
   // Reset form when user changes or dialog opens
   useEffect(() => {

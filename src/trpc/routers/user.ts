@@ -3,15 +3,54 @@ import { router, publicProcedure } from "../server";
 import { db } from "@/lib/db";
 
 export const userRouter = router({
-  getAll: publicProcedure.query(async () => {
-    return db.user.findMany({
-      include: {
-        center: true,
-        directorRole: true,
-        coordinatorRole: true,
-      },
-    });
-  }),
+  getAll: publicProcedure
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(100).default(10),
+        })
+        .optional()
+    )
+    .query(async ({ input }) => {
+      const page = input?.page || 1;
+      const limit = input?.limit || 10;
+      const search = input?.search?.toLowerCase();
+
+      const where = search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+              { role: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined;
+
+      const [users, total] = await Promise.all([
+        db.user.findMany({
+          where,
+          include: {
+            center: true,
+            directorRole: true,
+            coordinatorRole: true,
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+        }),
+        db.user.count({ where }),
+      ]);
+
+      return {
+        users,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))

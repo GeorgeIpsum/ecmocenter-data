@@ -4,15 +4,34 @@ import { CenterType } from "../../generated/prisma/enums";
 import { publicProcedure, router } from "../server";
 
 export const ecmoCenterRouter = router({
-  getAll: publicProcedure.query(async () => {
-    return db.ecmoCenter.findMany({
-      include: {
-        director: true,
-        coordinator: true,
-        users: true,
-      },
-    });
-  }),
+  getAll: publicProcedure
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ input }) => {
+      const search = input?.search?.toLowerCase();
+
+      return db.ecmoCenter.findMany({
+        where: search
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { city: { contains: search, mode: "insensitive" } },
+                { state: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : undefined,
+        include: {
+          director: true,
+          coordinator: true,
+          users: true,
+        },
+      });
+    }),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))

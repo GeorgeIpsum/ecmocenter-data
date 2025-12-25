@@ -28,7 +28,7 @@ export function CreateUserDialog({ buttonText = "Add New User" }: CreateUserDial
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: centers } = trpc.ecmoCenter.getAll.useQuery();
+  const { data: centers } = trpc.ecmoCenter.getAll.useQuery({});
 
   const createUser = trpc.user.create.useMutation({
     onSuccess: () => {

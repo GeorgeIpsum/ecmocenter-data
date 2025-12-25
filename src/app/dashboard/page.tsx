@@ -3,27 +3,70 @@
 import { trpc } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { CreateCenterDialog } from "@/components/create-center-dialog";
 import { CreateUserDialog } from "@/components/create-user-dialog";
 import { EditCenterDialog } from "@/components/edit-center-dialog";
 import { DeleteCenterDialog } from "@/components/delete-center-dialog";
 import { EditUserDialog } from "@/components/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/delete-user-dialog";
+import { Pagination } from "@/components/pagination";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const { data: centers, isLoading: centersLoading } = trpc.ecmoCenter.getAll.useQuery();
-  const { data: users, isLoading: usersLoading } = trpc.user.getAll.useQuery();
+
+  const [centerSearch, setCenterSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounced search values
+  const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
+
+  // Debounce center search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCenterSearch(centerSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [centerSearch]);
+
+  // Debounce user search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedUserSearch(userSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [userSearch]);
+
+  const { data: centers, isLoading: centersLoading } = trpc.ecmoCenter.getAll.useQuery({
+    search: debouncedCenterSearch,
+  });
+
+  const { data: usersData, isLoading: usersLoading } = trpc.user.getAll.useQuery({
+    search: debouncedUserSearch,
+    page: currentPage,
+    limit: 10,
+  });
+
+  const users = usersData?.users;
+  const totalPages = usersData?.totalPages || 1;
 
   useEffect(() => {
     if (!isPending && !session) {
       router.push("/login");
     }
   }, [session, isPending, router]);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedUserSearch]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,6 +111,15 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name, city, or state..."
+                  value={centerSearch}
+                  onChange={(e) => setCenterSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               {centersLoading ? (
                 <p>Loading centers...</p>
               ) : centers && centers.length > 0 ? (
@@ -103,8 +155,12 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No centers found</p>
-                  <CreateCenterDialog buttonText="Create First Center" />
+                  <p className="text-gray-500 mb-4">
+                    {debouncedCenterSearch ? "No centers match your search" : "No centers found"}
+                  </p>
+                  {!debouncedCenterSearch && (
+                    <CreateCenterDialog buttonText="Create First Center" />
+                  )}
                 </div>
               )}
             </CardContent>
@@ -113,9 +169,25 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Users</CardTitle>
-              <CardDescription>Manage user accounts and roles</CardDescription>
+              <CardDescription>
+                Manage user accounts and roles
+                {usersData && (
+                  <span className="ml-2 text-xs">
+                    ({usersData.total} total)
+                  </span>
+                )}
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name, email, or role..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               {usersLoading ? (
                 <p>Loading users...</p>
               ) : users && users.length > 0 ? (
@@ -156,11 +228,20 @@ export default function DashboardPage() {
                   <div className="mt-4">
                     <CreateUserDialog />
                   </div>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No users found</p>
-                  <CreateUserDialog buttonText="Create First User" />
+                  <p className="text-gray-500 mb-4">
+                    {debouncedUserSearch ? "No users match your search" : "No users found"}
+                  </p>
+                  {!debouncedUserSearch && (
+                    <CreateUserDialog buttonText="Create First User" />
+                  )}
                 </div>
               )}
             </CardContent>

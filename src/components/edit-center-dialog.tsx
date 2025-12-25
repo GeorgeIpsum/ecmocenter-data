@@ -44,7 +44,8 @@ export function EditCenterDialog({ center, trigger }: EditCenterDialogProps) {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: users } = trpc.user.getAll.useQuery();
+  const { data: usersData } = trpc.user.getAll.useQuery({ limit: 100 });
+  const users = usersData?.users;
 
   // Reset form when center changes or dialog opens
   useEffect(() => {

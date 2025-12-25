@@ -32,7 +32,8 @@ export function CreateCenterDialog({ buttonText = "Add New Center" }: CreateCent
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: users } = trpc.user.getAll.useQuery();
+  const { data: usersData } = trpc.user.getAll.useQuery({ limit: 100 });
+  const users = usersData?.users;
 
   const createCenter = trpc.ecmoCenter.create.useMutation({
     onSuccess: () => {
